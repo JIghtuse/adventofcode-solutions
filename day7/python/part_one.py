@@ -16,10 +16,15 @@ def read_graph(fname):
                 graph[split[-1]] = (split[1], split[0], split[2])
     return graph
 
-def op_not(value):
-    return ~value & 0xffff + 1
+def op_eq(value):
+    return value
 
-OPERATIONS = {"AND": operator.iand,
+def op_not(value):
+    return ~value & 0xffff
+
+OPERATIONS = {"EQ": op_eq,
+              "NOT": op_not,
+              "AND": operator.iand,
               "OR": operator.ior,
               "RSHIFT": operator.rshift,
               "LSHIFT": operator.lshift}
@@ -28,36 +33,23 @@ def memoize(f):
     memo = {}
     def helper(graph, key):
         if key not in memo:
-            result = f(graph, key)
-            if isinstance(result, int):
-                memo[key] = result
-            else:
-                return result
+            memo[key] = f(graph, key)
         return memo[key]
     return helper
 
 @memoize
 def find_key(graph, key):
     try:
-        key = int(key)
-        return key
+        return int(key)
     except ValueError:
         pass
     value = graph[key]
     op = value[0]
 
-    result = None
     if len(value) == 2:
-        if op == "EQ":
-            result = find_key(graph, value[1])
-        if op == "NOT":
-            result = op_not(find_key(graph, value[1]))
+        return OPERATIONS[op](find_key(graph, value[1]))
     else:
-        result = OPERATIONS[op](find_key(graph, value[1]), find_key(graph, value[2]))
-    result &= 0xffff
-    print(key, result)
-    return result
-
+        return OPERATIONS[op](find_key(graph, value[1]), find_key(graph, value[2]))
 
 def main():
     graph = read_graph("../input")
