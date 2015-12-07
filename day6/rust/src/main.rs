@@ -1,9 +1,10 @@
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
+use std::cmp;
 
-pub fn extract_range_idx(start: &str, end: &str) -> ((i32, i32), (i32, i32)) {
-    fn extract(s: &str) -> Vec<i32> {
+pub fn extract_range_idx(start: &str, end: &str) -> ((usize, usize), (usize, usize)) {
+    fn extract(s: &str) -> Vec<usize> {
         s.splitn(2, ",")
          .map(|x| x.parse().unwrap())
          .collect()
@@ -28,7 +29,7 @@ fn how_many_lit(filename: &str) -> Option<usize> {
                 let (start, end) = extract_range_idx(words[1], words[3]);
                 for i in (start.0..end.0) {
                     for j in (start.1..end.1) {
-                        grid[i as usize][j as usize] = !grid[i as usize][j as usize];
+                        grid[i][j] = !grid[i][j];
                     }
                 }
             }
@@ -37,7 +38,7 @@ fn how_many_lit(filename: &str) -> Option<usize> {
                 let (start, end) = extract_range_idx(words[2], words[4]);
                 for i in (start.0..end.0) {
                     for j in (start.1..end.1) {
-                        grid[i as usize][j as usize] = operation;
+                        grid[i][j] = operation;
                     }
                 }
             }
@@ -55,8 +56,50 @@ fn how_many_lit(filename: &str) -> Option<usize> {
     Some(nlit)
 }
 
+fn get_brightness(filename: &str) -> Option<usize> {
+    let f = File::open(filename).unwrap();
+    let reader = BufReader::new(f);
+
+    let mut grid = [[0i8; 1000]; 1000];
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+
+        let words: Vec<&str> = line.split_whitespace().collect();
+        let diff: i8 = match words[0] {
+            "toggle" => 2,
+            "turn" => {
+                match words[1] {
+                    "on" => 1,
+                    "off" => -1,
+                    _ => panic!("unexpected input"),
+                }
+            }
+            _ => panic!("unexpected input"),
+        };
+        let (start, end) = match words[0] {
+            "toggle" => extract_range_idx(words[1], words[3]),
+            "turn" => extract_range_idx(words[2], words[4]),
+            _ => panic!("unexpected input"),
+        };
+        for i in (start.0..end.0) {
+            for j in (start.1..end.1) {
+                grid[i][j] = cmp::max(grid[i][j] + diff, 0);
+            }
+        }
+    }
+    let mut brightness = 0;
+    for i in (0..1000) {
+        for j in (0..1000) {
+            brightness += grid[i][j] as usize;
+        }
+    }
+    Some(brightness)
+}
+
 fn main() {
     println!("{}", how_many_lit("../input").unwrap());
+    println!("{}", get_brightness("../input").unwrap());
 }
 
 #[cfg(test)]
