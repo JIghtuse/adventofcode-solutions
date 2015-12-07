@@ -2,7 +2,7 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 
-pub fn extract_range(start: &str, end: &str) -> ((i32, i32), (i32, i32)) {
+pub fn extract_range_idx(start: &str, end: &str) -> ((i32, i32), (i32, i32)) {
     fn extract(s: &str) -> Vec<i32> {
         s.splitn(2, ",")
          .map(|x| x.parse().unwrap())
@@ -10,7 +10,7 @@ pub fn extract_range(start: &str, end: &str) -> ((i32, i32), (i32, i32)) {
     };
     let start = extract(start);
     let end = extract(end);
-    ((start[0], start[1]), (end[0], end[1]))
+    ((start[0], start[1]), (end[0] + 1, end[1] + 1))
 }
 
 fn how_many_lit(filename: &str) -> Option<usize> {
@@ -25,18 +25,18 @@ fn how_many_lit(filename: &str) -> Option<usize> {
         let words: Vec<&str> = line.split_whitespace().collect();
         match words[0] {
             "toggle" => {
-                let (start, end) = extract_range(words[1], words[3]);
-                for i in (start.0 .. end.0) {
-                    for j in (start.1 .. end.1) {
+                let (start, end) = extract_range_idx(words[1], words[3]);
+                for i in (start.0..end.0) {
+                    for j in (start.1..end.1) {
                         grid[i as usize][j as usize] = !grid[i as usize][j as usize];
                     }
                 }
             }
             "turn" => {
                 let operation: bool = words[1] == "on";
-                let (start, end) = extract_range(words[2], words[4]);
-                for i in (start.0 .. end.0) {
-                    for j in (start.1 .. end.1) {
+                let (start, end) = extract_range_idx(words[2], words[4]);
+                for i in (start.0..end.0) {
+                    for j in (start.1..end.1) {
                         grid[i as usize][j as usize] = operation;
                     }
                 }
@@ -45,8 +45,8 @@ fn how_many_lit(filename: &str) -> Option<usize> {
         }
     }
     let mut nlit = 0;
-    for i in (0 .. 999) {
-        for j in (0 .. 999) {
+    for i in (0..1000) {
+        for j in (0..1000) {
             if grid[i][j] {
                 nlit += 1;
             }
