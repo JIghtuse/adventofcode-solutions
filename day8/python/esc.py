@@ -3,7 +3,7 @@
 import re
 
 lines = []
-with open("input") as filep:
+with open("../input") as filep:
     lines = filep.readlines()
 
 orig = 0
