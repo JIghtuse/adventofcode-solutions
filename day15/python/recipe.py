@@ -4,37 +4,49 @@ from collections import defaultdict
 from functools import reduce
 import operator
 
-data = {}
-for line in open("input"):
-    line = line.split()
-    data[line[0]] = [int(line[i].strip(',')) for i in range(2, 10 + 1, 2)]
+NPROPERTIES = 5
 
-MAX = 100
+def mixtures(n, total):
+    start = total if n == 1 else 0
 
-scores = defaultdict(list)
+    for i in range(start, total+1):
+        left = total - i
+        if n-1:
+            for y in mixtures(n-1, left):
+                yield [i] + y
+        else:
+            yield [i]
 
-for i in range(1, MAX + 1):
-    for j in range(1, MAX - i + 1):
-        for k in range(1, MAX - i - j + 1):
-            l = MAX - i - j - k
-            if l < 0 or i + j + k + l != MAX:
-                continue
-            props = [i, j, k, l]
-            key = ','.join(str(p) for p in props)
-            for z in range(5):
-                s = sum(props[m] * data[name][z] for m, name in enumerate(data))
-                scores[key].append(max(0, s))
+def gather_scores(data, nspoons):
+    scores = defaultdict(list)
+    for mix in mixtures(len(data), nspoons):
+        key = ','.join(str(p) for p in mix)
+        for z in range(NPROPERTIES):
+            s = sum(mix[m] * data[name][z] for m, name in enumerate(data))
+            scores[key].append(max(0, s))
+    return scores
 
 def score(properties):
     return reduce(operator.mul, properties[1][:-1], 1)
 
-best = max(scores.items(), key=score)
-print(score(best))
-
 def score_500_calories(properties):
-    if properties[1][4] != 500:
+    if properties[1][NPROPERTIES - 1] != 500:
         return 0
-    return reduce(operator.mul, properties[1][:-1], 1)
+    return score(properties)
 
-best_500 = max(scores.items(), key=score_500_calories)
-print(score_500_calories(best_500))
+def main():
+    data = {}
+    for line in open("input"):
+        line = line.split()
+        data[line[0]] = [int(line[i].strip(',')) for i in range(2, 10 + 1, 2)]
+
+    scores = gather_scores(data, 100)
+
+    best = max(scores.items(), key=score)
+    print(score(best))
+
+    best_500 = max(scores.items(), key=score_500_calories)
+    print(score_500_calories(best_500))
+
+if __name__ == "__main__":
+    main()
