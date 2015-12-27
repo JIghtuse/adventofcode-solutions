@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from itertools import combinations
+import copy
 
 class Person:
     def __init__(self, hp, damage, armor):
@@ -63,24 +64,36 @@ def shop():
 
 
 def main():
+    enemy = Person(0, 0, 0)
+
+    with open("input") as filep:
+        for line in filep:
+            line = line.split()
+            if line[0].startswith("Hit"):
+                enemy.hp = int(line[2])
+            elif line[0].startswith("Damage"):
+                enemy.damage = int(line[1])
+            elif line[0].startswith("Armor"):
+                enemy.armor = int(line[1])
+
     def player_wins(fight, p, enemy):
         return (True, False) == fight(p, enemy)
 
     mincost = float("inf")
     for cost, damage, armor in shop():
-        enemy = Person(103, 9, 2)
+        e = copy.deepcopy(enemy)
         p = Person(100, damage, armor)
 
-        if player_wins(fight, p, enemy) and cost < mincost:
+        if player_wins(fight, p, e) and cost < mincost:
             mincost = cost
     print(mincost)
 
     maxcost = float("-inf")
     for cost, damage, armor in shop():
-        enemy = Person(103, 9, 2)
+        e = copy.deepcopy(enemy)
         p = Person(100, damage, armor)
 
-        if not player_wins(fight, p, enemy) and cost > maxcost:
+        if not player_wins(fight, p, e) and cost > maxcost:
             maxcost = cost
     print(maxcost)
 
