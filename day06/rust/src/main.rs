@@ -27,8 +27,8 @@ fn how_many_lit(filename: &str) -> Option<usize> {
         match words[0] {
             "toggle" => {
                 let (start, end) = extract_range_idx(words[1], words[3]);
-                for i in (start.0..end.0) {
-                    for j in (start.1..end.1) {
+                for i in start.0..end.0 {
+                    for j in start.1..end.1 {
                         grid[i][j] = !grid[i][j];
                     }
                 }
@@ -36,8 +36,8 @@ fn how_many_lit(filename: &str) -> Option<usize> {
             "turn" => {
                 let operation: bool = words[1] == "on";
                 let (start, end) = extract_range_idx(words[2], words[4]);
-                for i in (start.0..end.0) {
-                    for j in (start.1..end.1) {
+                for i in start.0..end.0 {
+                    for j in start.1..end.1 {
                         grid[i][j] = operation;
                     }
                 }
@@ -46,8 +46,8 @@ fn how_many_lit(filename: &str) -> Option<usize> {
         }
     }
     let mut nlit = 0;
-    for i in (0..1000) {
-        for j in (0..1000) {
+    for i in 0..1000 {
+        for j in 0..1000 {
             if grid[i][j] {
                 nlit += 1;
             }
@@ -82,15 +82,15 @@ fn get_brightness(filename: &str) -> Option<usize> {
             "turn" => extract_range_idx(words[2], words[4]),
             _ => panic!("unexpected input"),
         };
-        for i in (start.0..end.0) {
-            for j in (start.1..end.1) {
+        for i in start.0..end.0 {
+            for j in start.1..end.1 {
                 grid[i][j] = cmp::max(grid[i][j] + diff, 0);
             }
         }
     }
     let mut brightness = 0;
-    for i in (0..1000) {
-        for j in (0..1000) {
+    for i in 0..1000 {
+        for j in 0..1000 {
             brightness += grid[i][j] as usize;
         }
     }
