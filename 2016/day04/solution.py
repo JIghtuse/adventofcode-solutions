@@ -17,8 +17,8 @@ def solve_first(fname):
     s = 0
     for names, sector_id, checksum in data:
         names = ''.join(names)
-        names = list(set([(names.count(n), n) for n in names]))
-        names.sort(key=lambda x: (x[0], -ord(x[1])), reverse=True)
+        names = list(set([(-names.count(n), n) for n in names]))
+        names.sort()
         checksum_actual = ''.join(n[1] for n in names[:5])
         if checksum_actual == checksum:
             s += sector_id
