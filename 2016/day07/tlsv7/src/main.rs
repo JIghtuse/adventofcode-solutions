@@ -4,8 +4,8 @@ use std::path::Path;
 
 #[derive(Default)]
 struct AddressIpv7 {
-    supernets: Vec<String>,
-    hypernets: Vec<String>,
+    supernets: Vec<Vec<char>>,
+    hypernets: Vec<Vec<char>>,
 }
 
 fn get_addresses<P: AsRef<Path>>(fname: P) -> Vec<AddressIpv7> {
@@ -20,9 +20,9 @@ fn get_addresses<P: AsRef<Path>>(fname: P) -> Vec<AddressIpv7> {
         let line = line.unwrap();
         for (i, field) in line.split(|c| c == '[' || c == ']').enumerate() {
             if i % 2 == 0 {
-                address.supernets.push(field.to_string());
+                address.supernets.push(field.chars().collect());
             } else {
-                address.hypernets.push(field.to_string());
+                address.hypernets.push(field.chars().collect());
             }
         }
         addresses.push(address);
@@ -30,9 +30,8 @@ fn get_addresses<P: AsRef<Path>>(fname: P) -> Vec<AddressIpv7> {
     addresses
 }
 
-fn has_abba(s: &str) -> bool {
-    let chars: Vec<_> = s.chars().collect();
-    chars.windows(4).any(|s| s[0] != s[1] && s[0] == s[3] && s[1] == s[2])
+fn has_abba(s: &[char]) -> bool {
+    s.windows(4).any(|s| s[0] != s[1] && s[0] == s[3] && s[1] == s[2])
 }
 
 fn has_tls(a: &AddressIpv7) -> bool {
@@ -49,15 +48,13 @@ fn make_bab(aba: &[char]) -> Vec<char> {
 
 fn has_ssl(a: &AddressIpv7) -> bool {
     for hypernet in &a.hypernets {
-        let chars: Vec<_> = hypernet.chars().collect();
-        for window in chars.windows(3) {
+        for window in hypernet.windows(3) {
             // [bab], [xyx]
             if window[0] == window[2] && window[0] != window[1] {
                 let bab = make_bab(window);
 
                 // need to find [aba], [yxy] in supernets
                 for supernet in &a.supernets {
-                    let supernet: Vec<_> = supernet.chars().collect();
                     if supernet.windows(3).any(|w| bab == w) {
                         return true;
                     }
