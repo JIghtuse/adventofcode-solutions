@@ -1,0 +1,7 @@
+[package]
+name = "rle"
+version = "0.1.0"
+authors = ["Boris Egorov <egorov@linux.com>"]
+
+[dependencies]
+regex = "0.1"
