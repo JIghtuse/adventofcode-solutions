@@ -12,7 +12,7 @@ fn read_data<P: AsRef<Path>>(fname: P) -> Vec<String> {
 
 fn get_sequence_length_format_v1(marker_re: &Regex, line: &str) -> usize {
     let mut pos = 0;
-    let mut new_line = String::new();
+    let mut len = 0;
     for capture in marker_re.captures_iter(line) {
         let (cap_begin, cap_end) = capture.pos(0).unwrap();
 
@@ -20,21 +20,15 @@ fn get_sequence_length_format_v1(marker_re: &Regex, line: &str) -> usize {
             continue;
         }
 
-        new_line.push_str(&line[pos..cap_begin]);
+        len += cap_begin - pos;
 
         let length: usize = capture[1].parse().unwrap();
         let times: usize = capture[2].parse().unwrap();
 
-        let replacement = &line[cap_end..length + cap_end];
-
-        for _ in 0..times {
-            new_line.push_str(replacement);
-        }
-
+        len += times * length;
         pos = length + cap_end;
     }
-    new_line.push_str(&line[pos..line.len()]);
-    new_line.len()
+    len + line.len() - pos
 }
 
 fn get_sequence_length_format_v2(marker_re: &Regex, line: &str) -> usize {
