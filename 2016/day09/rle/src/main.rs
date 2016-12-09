@@ -20,12 +20,12 @@ fn get_sequence_length_format_v1(marker_re: &Regex, line: &str) -> usize {
             continue;
         }
 
-        new_line.push_str(unsafe { line.slice_unchecked(pos, cap_begin) });
+        new_line.push_str(&line[pos..cap_begin]);
 
         let length: usize = capture[1].parse().unwrap();
         let times: usize = capture[2].parse().unwrap();
 
-        let replacement = unsafe { line.slice_unchecked(cap_end, length + cap_end) };
+        let replacement = &line[cap_end..length + cap_end];
 
         for _ in 0..times {
             new_line.push_str(replacement);
@@ -33,7 +33,7 @@ fn get_sequence_length_format_v1(marker_re: &Regex, line: &str) -> usize {
 
         pos = length + cap_end;
     }
-    new_line.push_str(unsafe { line.slice_unchecked(pos, line.len()) });
+    new_line.push_str(&line[pos..line.len()]);
     new_line.len()
 }
 
@@ -47,8 +47,8 @@ fn get_sequence_length_format_v2(marker_re: &Regex, line: &str) -> usize {
         let length: usize = capture[1].parse().unwrap();
         let times: usize = capture[2].parse().unwrap();
 
-        let slice_current = unsafe { line.slice_unchecked(capture_pos.1, capture_pos.1 + length) };
-        let slice_end = unsafe { line.slice_unchecked(capture_pos.1 + length, line.len()) };
+        let slice_current = &line[capture_pos.1..capture_pos.1 + length];
+        let slice_end = &line[capture_pos.1 + length..line.len()];
 
         capture_pos.0 + times * get_sequence_length_format_v2(marker_re, slice_current) +
         get_sequence_length_format_v2(marker_re, slice_end)
