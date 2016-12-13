@@ -6,33 +6,8 @@ use std::collections::{HashMap, HashSet};
 fn is_wall(pos: (i32, i32)) -> bool {
     let (x, y) = pos;
     let favorite_number = 1362;
-    let mut bits = x * x + 3 * x + 2 * x * y + y + y * y + favorite_number;
-    let mut number_of_ones = 0;
-    while bits != 0 {
-        number_of_ones += bits & 1;
-        bits /= 2;
-    }
-    number_of_ones % 2 == 1
-}
-
-fn draw_labyrint(max_x: i32, max_y: i32) {
-    print!(" ");
-    for x in 0..max_x + 1 {
-        print!("{}", x % 10);
-    }
-    println!("");
-
-    for y in 0..max_y + 1 {
-        print!("{}", y % 10);
-        for x in 0..max_x + 1 {
-            if is_wall((x, y)) {
-                print!("#");
-            } else {
-                print!(" ");
-            }
-        }
-        println!("");
-    }
+    let bits = x * x + 3 * x + 2 * x * y + y + y * y + favorite_number;
+    bits.count_ones() % 2 == 1
 }
 
 fn draw_labyrint_with_path(max_x: i32, max_y: i32, came_from: &HashMap<(i32, i32), (i32, i32)>) {
@@ -140,7 +115,6 @@ fn astar(start: (i32, i32), goal: (i32, i32)) -> Option<Vec<(i32, i32)>> {
             if closed_set.contains(neighbor) {
                 continue;
             }
-            println!("{:?}", neighbor);
             let tentative_g = gscore[&current] + 1.0;
             if !open_set.contains(neighbor) {
                 open_set.insert(*neighbor);
@@ -193,13 +167,9 @@ fn count_unique_coordinates_after_steps(start: (i32, i32), steps: usize) -> Hash
 }
 
 fn main() {
-    let max_y = 50;
-    let max_x = 50;
-    draw_labyrint(max_x, max_y);
-
     let result = astar((1, 1), (31, 39)).unwrap();
-    println!("{:?} {}", result, result.len() - 1);
-
     let unique = count_unique_coordinates_after_steps((1, 1), 50);
-    println!("{:?} {}", unique, unique.len());
+
+    println!("{}", result.len() - 1);
+    println!("{}", unique.len());
 }
