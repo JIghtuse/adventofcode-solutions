@@ -1,0 +1,6 @@
+[package]
+name = "dragon_checksum"
+version = "0.1.0"
+authors = ["Boris Egorov <egorov@linux.com>"]
+
+[dependencies]
