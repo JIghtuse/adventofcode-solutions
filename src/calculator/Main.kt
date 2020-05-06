@@ -241,7 +241,7 @@ fun getVariableValue(activeVariables: Map<String, BigInteger>, signedName: Strin
 
 fun printHelp() {
     println("This program is a calculator")
-    println("You can input numbers with operands + - * / between them to calculate some expression")
+    println("You can input numbers with operators ^ + - * / between them to calculate some expression")
     println("Parenthesis is supported: ()")
     println("You can define variables with syntax \"varName = value\" and use them in expressions")
 }
