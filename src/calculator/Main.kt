@@ -1,7 +1,5 @@
 package calculator
 
-import java.util.Scanner
-
 fun getTokens(line: String) = line.split(" ").filter { it.isNotEmpty() }
 
 fun isPlus(token: String): Boolean {
@@ -10,8 +8,16 @@ fun isPlus(token: String): Boolean {
     return isPlusChars || isPlusByMinuses
 }
 
+fun isMinus(token: String): Boolean = token.all { it == '-' }
+
 fun getOperation(token: String): Int.(Int) -> Int {
-    return if (isPlus(token)) Int::plus else Int::minus
+    if (isPlus(token)) {
+        return Int::plus
+    } else if (isMinus(token)) {
+        return Int::minus
+    } else {
+        throw Exception("Invalid expression")
+    }
 }
 
 fun parseAndCalculate(line: String): Int {
@@ -23,6 +29,7 @@ fun parseAndCalculate(line: String): Int {
     for (tokenIndex in tokens.indices) {
         val isNumberIndex = tokenIndex % 2 == 0
         val token = tokens[tokenIndex]
+
         if (isNumberIndex) {
             val n = token.toInt()
             result = activeOperation(result, n)
@@ -39,18 +46,23 @@ fun printHelp() {
 }
 
 fun main() {
-    val scanner = Scanner(System.`in`)
-
     while (true) {
-        val line = scanner.nextLine()
+        val line = readLine()!!
 
         if (line.isEmpty()) continue
 
-        if (line == "/exit") break
-
-        if (line == "/help") printHelp()
-
-        println(parseAndCalculate(line))
+        if (line.first() == '/') {
+            val command = line.substring(1)
+            if (command == "exit") break
+            if (command == "help") printHelp()
+            println("Unknown command")
+        } else {
+            try {
+                println(parseAndCalculate(line))
+            } catch (_: java.lang.Exception) {
+                println("Invalid expression")
+            }
+        }
     }
 
     println("Bye!")
