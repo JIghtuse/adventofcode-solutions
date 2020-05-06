@@ -8,20 +8,14 @@ fun main() {
     while (true) {
         val line = scanner.nextLine()
 
-        if (line == "/exit") {
-            break
-        }
+        if (line.isEmpty()) continue
 
-        if (line.isEmpty()) {
-            continue
-        }
+        if (line == "/exit") break
 
-        var sum = 0
-        for (i in line.split(" ")) {
-            sum += i.toInt()
-        }
+        if (line == "/help") println("The program calculates the sum of numbers")
 
-        println(sum)
+        val numbers = line.split(" ")
+        println(numbers.map { it.toInt() }.sum())
     }
 
     println("Bye!")
