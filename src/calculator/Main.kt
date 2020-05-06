@@ -4,10 +4,25 @@ import java.util.Scanner
 
 fun main() {
     val scanner = Scanner(System.`in`)
-    val x = scanner.nextInt()
-    val y = scanner.nextInt()
 
-    val sum = x + y
+    while (true) {
+        val line = scanner.nextLine()
 
-    println(sum)
+        if (line == "/exit") {
+            break
+        }
+
+        if (line.isEmpty()) {
+            continue
+        }
+
+        var sum = 0
+        for (i in line.split(" ")) {
+            sum += i.toInt()
+        }
+
+        println(sum)
+    }
+
+    println("Bye!")
 }
