@@ -1,6 +1,7 @@
 package calculator
 
 import java.lang.NumberFormatException
+import java.math.BigInteger
 import kotlin.math.pow
 
 enum class Token(val defaultChar: Char) {
@@ -177,39 +178,39 @@ fun intoPostfixNotation(infixTokens: List<Pair<Token, String>>): List<Pair<Token
     return result
 }
 
-fun evaluatePostfixExpression(postfixTokens: List<Pair<Token, String>>, activeVariables: Map<String, Int>): Int {
+fun evaluatePostfixExpression(postfixTokens: List<Pair<Token, String>>, activeVariables: Map<String, BigInteger>): BigInteger {
     if (postfixTokens.isEmpty()) throw Exception("Invalid expression")
 
-    val stack = mutableListOf<Int>()
+    val stack = mutableListOf<BigInteger>()
 
-    fun extractBinaryOperands(): Pair<Int, Int> {
+    fun extractBinaryOperands(): Pair<BigInteger, BigInteger> {
         if (stack.size < 2) throw Exception("Invalid expression")
         val y = stack.removeAt(stack.lastIndex)
         val x = stack.removeAt(stack.lastIndex)
         return Pair(x, y)
     }
 
-    fun performBinaryOperation(operation: Int.(Int) -> Int) {
+    fun performBinaryOperation(operation: BigInteger.(BigInteger) -> BigInteger) {
         val (x, y) = extractBinaryOperands()
         stack.add(operation(x, y))
     }
 
     for ((tokenType, tokenValue) in postfixTokens) {
         when (tokenType) {
-            Token.Number -> stack.add(tokenValue.toInt())
+            Token.Number -> stack.add(tokenValue.toBigInteger())
             Token.Identifier -> stack.add(getVariableValue(activeVariables, tokenValue))
 
-            Token.Plus -> performBinaryOperation(Int::plus)
-            Token.Minus -> performBinaryOperation(Int::minus)
+            Token.Plus -> performBinaryOperation(BigInteger::plus)
+            Token.Minus -> performBinaryOperation(BigInteger::minus)
             Token.Divide -> {
                 val (x, y) = extractBinaryOperands()
-                if (y == 0) throw Exception("Invalid expression")
+                if (y == BigInteger.ZERO) throw Exception("Invalid expression")
                 stack.add(x / y)
             }
-            Token.Multiply -> performBinaryOperation(Int::times)
+            Token.Multiply -> performBinaryOperation(BigInteger::times)
             Token.Power -> {
                 val (x, y) = extractBinaryOperands()
-                stack.add(x.toDouble().pow(y).toInt())
+                stack.add(x.toDouble().pow(y.toInt()).toLong().toBigInteger())
             }
 
             // all other valid types processed in other place (parenthesis, assignment)
@@ -219,20 +220,20 @@ fun evaluatePostfixExpression(postfixTokens: List<Pair<Token, String>>, activeVa
     return stack.last()
 }
 
-fun evaluateInfixExpression(tokens: List<Pair<Token, String>>, activeVariables: Map<String, Int>): Int {
+fun evaluateInfixExpression(tokens: List<Pair<Token, String>>, activeVariables: Map<String, BigInteger>): BigInteger {
     return evaluatePostfixExpression(intoPostfixNotation(tokens), activeVariables)
 }
 
 fun breakOn(s: String, index: Int) = Pair(s.substring(0, index), s.substring(index))
 
-fun signToInt(s: String) = if (s == "-") -1 else 1
+fun signToNumber(s: String): BigInteger = if (s == "-") -BigInteger.ONE else BigInteger.ONE
 
-fun getVariableValue(activeVariables: Map<String, Int>, signedName: String): Int {
+fun getVariableValue(activeVariables: Map<String, BigInteger>, signedName: String): BigInteger {
     val (sign, name) = breakOn(signedName, 1)
 
     val rightHandSideValue = activeVariables[name]
     if (rightHandSideValue != null) {
-        return signToInt(sign) * rightHandSideValue
+        return signToNumber(sign) * rightHandSideValue
     } else {
         throw Exception("Unknown variable")
     }
@@ -246,7 +247,7 @@ fun printHelp() {
 }
 
 fun main() {
-    val activeVariables = mutableMapOf<String, Int>()
+    val activeVariables = mutableMapOf<String, BigInteger>()
 
     while (true) {
         val line = readLine()!!
