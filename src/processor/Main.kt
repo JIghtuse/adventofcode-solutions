@@ -34,6 +34,16 @@ class Matrix(val items: ArrayList<ArrayList<Int>>) {
         return Matrix(sumMatrixItems)
     }
 
+    operator fun times(scalar: Int): Matrix {
+        val newItems = arrayListOf<ArrayList<Int>>()
+        for (row in items) {
+            val newRow = arrayListOf<Int>()
+            row.forEach { newRow.add(it * scalar) }
+            newItems.add(newRow)
+        }
+        return Matrix(newItems)
+    }
+
     override fun toString(): String {
         return items.joinToString("\n") { it.joinToString(" ") }
     }
@@ -64,11 +74,10 @@ class Matrix(val items: ArrayList<ArrayList<Int>>) {
 
 fun main() {
     val a = Matrix.readFromStdin()
-    val b = Matrix.readFromStdin()
+    val scalar = readLine()!!.trim().toInt()
 
     try {
-        val sum = a + b
-        println(sum)
+        println(a * scalar)
     } catch (_: java.lang.Exception) {
         println("ERROR")
     }
