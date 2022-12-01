@@ -8,6 +8,12 @@ import java.security.MessageDigest
 fun readInput(name: String) = File("src", "$name.txt")
     .readLines()
 
+fun readBundledNumbers(name: String) = File("src", "$name.txt")
+    .readText()
+    .split("\n\n")
+    .map { bundle -> bundle.split("\n") }
+    .map { bundle -> bundle.map { s -> s.toInt() } }
+
 /**
  * Converts string to md5 hash.
  */
