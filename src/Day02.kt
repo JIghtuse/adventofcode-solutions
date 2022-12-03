@@ -1,15 +1,87 @@
-fun main() {
-    fun part1(input: List<String>): Int {
-        return input.size
+import java.lang.IllegalStateException
+
+enum class Shape {
+    Rock,
+    Paper,
+    Scissors
+}
+
+fun opponentInputToShape(s: String): Shape =
+    when (s) {
+        "A" -> Shape.Rock
+        "B" -> Shape.Paper
+        "C" -> Shape.Scissors
+        else -> throw IllegalStateException("invalid opponent input $s")
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
+fun ourInputToShape(s: String): Shape =
+    when (s) {
+        "X" -> Shape.Rock
+        "Y" -> Shape.Paper
+        "Z" -> Shape.Scissors
+        else -> throw IllegalStateException("invalid our input $s")
     }
+
+fun scoreForShape(shape: Shape) =
+    when (shape) {
+        Shape.Rock -> 1
+        Shape.Paper -> 2
+        Shape.Scissors -> 3
+    }
+
+fun scoreForRound(me: Shape, opponent: Shape): Int {
+    if (me == opponent) {
+        return 3 // draw
+    }
+
+    return when (me to opponent) {
+        (Shape.Rock to Shape.Scissors) -> 6 // win
+        (Shape.Scissors to Shape.Paper) -> 6 // win
+        (Shape.Paper to Shape.Rock) -> 6 // win
+        else -> 0 // lost
+    }
+}
+
+fun main() {
+    fun scoreForTwoShapes(me: Shape, opponent: Shape) =
+        scoreForShape(me) + scoreForRound(me, opponent)
+
+    fun scoreForGivenRound(roundData: String): Int {
+        val (s, t) = roundData.split(" ")
+        val ourShape = ourInputToShape(t)
+        val opponentShape = opponentInputToShape(s)
+
+        return scoreForTwoShapes(ourShape, opponentShape)
+    }
+
+    fun part1(input: List<String>): Int =
+        input.map(::scoreForGivenRound).sum()
+
+    fun determineShape(opponent: Shape, expectedOutcome: String) =
+        when (opponent to expectedOutcome) {
+            Shape.Rock to "Z" -> Shape.Paper
+            Shape.Scissors to "Z" -> Shape.Rock
+            Shape.Paper to "Z" -> Shape.Scissors
+            Shape.Rock to "X" -> Shape.Scissors
+            Shape.Scissors to "X" -> Shape.Paper
+            Shape.Paper to "X" -> Shape.Rock
+            else -> opponent
+    }
+
+    fun scoreForGivenRound2(roundData: String): Int {
+        val (s, t) = roundData.split(" ")
+        val opponentShape = opponentInputToShape(s)
+        val ourShape = determineShape(opponentShape, t)
+
+        return scoreForTwoShapes(ourShape, opponentShape)
+    }
+
+    fun part2(input: List<String>): Int =
+        input.map(::scoreForGivenRound2).sum()
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day02_test")
-    check(part1(testInput) == 0)
+    check(part1(testInput) == 15)
 
     val input = readInput("Day02")
     println(part1(input))
