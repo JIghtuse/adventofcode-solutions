@@ -46,16 +46,14 @@ fun main() {
     fun scoreForTwoShapes(me: Shape, opponent: Shape) =
         scoreForShape(me) + scoreForRound(me, opponent)
 
-    fun scoreForGivenRound(roundData: String): Int {
-        val (s, t) = roundData.split(" ")
-        val ourShape = ourInputToShape(t)
-        val opponentShape = opponentInputToShape(s)
-
-        return scoreForTwoShapes(ourShape, opponentShape)
-    }
-
     fun part1(input: List<String>): Int =
-        input.map(::scoreForGivenRound).sum()
+        input.sumOf {
+            val (s, t) = it.split(" ")
+            val ourShape = ourInputToShape(t)
+            val opponentShape = opponentInputToShape(s)
+
+            scoreForTwoShapes(ourShape, opponentShape)
+        }
 
     fun determineShape(opponent: Shape, expectedOutcome: String) =
         when (opponent to expectedOutcome) {
@@ -68,16 +66,14 @@ fun main() {
             else -> opponent
     }
 
-    fun scoreForGivenRound2(roundData: String): Int {
-        val (s, t) = roundData.split(" ")
-        val opponentShape = opponentInputToShape(s)
-        val ourShape = determineShape(opponentShape, t)
-
-        return scoreForTwoShapes(ourShape, opponentShape)
-    }
-
     fun part2(input: List<String>): Int =
-        input.map(::scoreForGivenRound2).sum()
+        input.sumOf {
+            val (s, t) = it.split(" ")
+            val opponentShape = opponentInputToShape(s)
+            val ourShape = determineShape(opponentShape, t)
+
+            scoreForTwoShapes(ourShape, opponentShape)
+        }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day02_test")
