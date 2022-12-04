@@ -15,15 +15,15 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        return input.map(::parseRanges).filter { (a, b) ->
+        return input.map(::parseRanges).count { (a, b) ->
             a.all { it in b } || b.all { it in a }
-        }.size
+        }
     }
 
     fun part2(input: List<String>): Int {
-        return input.map(::parseRanges).filter { (a, b) ->
+        return input.map(::parseRanges).count { (a, b) ->
             a.any { it in b } || b.any { it in a }
-        }.size
+        }
     }
 
     // test if implementation meets criteria from the description, like:
