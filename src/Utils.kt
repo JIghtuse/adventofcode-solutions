@@ -11,6 +11,11 @@ fun readLine(name: String) = File("src", "$name.txt")
 fun readInput(name: String) = File("src", "$name.txt")
     .readLines()
 
+fun read2dArray(name: String): Array<IntArray> = File("src", "$name.txt")
+    .readLines()
+    .map { it.chars().map { it - '0'.code }.toArray() }
+    .toTypedArray()
+
 fun readBundledNumbers(name: String) = File("src", "$name.txt")
     .readText()
     .split("\n\n")
