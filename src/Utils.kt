@@ -2,6 +2,9 @@ import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 
+fun readText(name: String) = File("src", "$name.txt")
+    .readText()
+
 fun readLine(name: String) = File("src", "$name.txt")
     .readLines().first()
 
