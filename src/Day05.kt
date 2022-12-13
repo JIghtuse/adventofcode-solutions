@@ -1,3 +1,5 @@
+package day05
+
 import java.io.File
 import java.util.Stack
 
