@@ -4,6 +4,8 @@ fun Char.isSymbol(): Boolean {
     return this != '.' && this !in "0123456789"
 }
 
+typealias NumberRanges = List<Pair<Int, IntRange>>
+
 val positionDiff = listOf(
     -1 to -1,
     -1 to 0,
@@ -43,117 +45,110 @@ fun main() {
         return partSum
     }
 
-    // 467..114..
-    // ...*......
-    // ..35..633.
-
-    // 1. Find adjacent numbers to each gear
-    //     How? Let's enumerate adjacent cells to a gear:
-    //          [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4), (2, 2), (2, 3), (2, 4)]
-    //     Now we can look how many numbers we have in these adjacent cells
-    //          [(1, 2), (1, 4)] are special: when you have digit, you just count it as adjacent number
-    //          [(0, 2), (0, 3), (0, 4)] [(2, 2), (2, 3), (2, 4)] require separate treatment
-    //              ... -> 0
-    //              1.2 -> 2
-    //              123 -> 1
-    //              4.. -> 1
-    //              ..4 -> 1
-    //              .4. -> 1
-    //              12. -> 1
-    //              .12 -> 1
-
-    //     Swell, we also have REAL edge cases where top and bottom are in corners
-    //              *.  -> 0
-    //
-    //              ..  -> 0
-    //              *.
-    //
-    //              1.  -> 1
-    //              *.
-    //
-    //              .5  -> 1
-    //              *.
-    //
-    //              24 -> 1
-    //              *.
-
-    // 2. Count adjacent numbers. If count==2, sum up adjacent numbers. Otherwise, skip the gear
     fun part2(input: List<String>): Int {
         val yRange = input.indices
         val xRange = input[0].indices
 
-        fun countAdjacentNumbersTopOrBottom(s: CharSequence): Int {
+        fun expandRangeLeft(line: String, range: IntRange): IntRange {
+            var expandedRange = range
+            for (i in range.first downTo 0) {
+                if (!line[i].isDigit()) break
+
+                expandedRange = i..expandedRange.last
+            }
+            return expandedRange
+        }
+
+        fun expandRangeRight(line: String, range: IntRange): IntRange {
+            var expandedRange = range
+            for (j in range.last..xRange.last) {
+                if (!line[j].isDigit()) break
+
+                expandedRange = expandedRange.first..j
+            }
+            return expandedRange
+        }
+
+        fun expandRange(line: String, range: IntRange) = expandRangeRight(line, expandRangeLeft(line, range))
+
+        fun findAdjacentNumbersTopOrBottom(y: Int, range: IntRange): NumberRanges {
+            val line = input[y]
+            val s = line.subSequence(range)
+
             return when {
-                s.length == 2 && s.any(Char::isDigit) -> 1
-                s.length == 2 -> 0
-                s == "..." -> 0
-                s.all(Char::isDigit) -> 1
-                s.first().isDigit() && s.last().isDigit() && s[1] == '.' -> 2
-                else -> 1
+                // "..."
+                s.none(Char::isDigit) -> listOf()
+                // "123"
+                s.all(Char::isDigit) -> listOf(y to expandRange(line, range))
+
+                // ".5", "#2" etc
+                s.length == 2 && s.last().isDigit() -> listOf(y to expandRangeRight(line, range.last..range.last))
+                // "5.", "2@" etc
+                s.length == 2 && s.first().isDigit() -> listOf(y to expandRangeLeft(line, range.first..range.first))
+
+                // "23."
+                s[1].isDigit() && s[0].isDigit() -> listOf(y to expandRangeLeft(line, range.first..<range.last))
+                // "@12"
+                s[1].isDigit() && s[2].isDigit() -> listOf(y to expandRangeRight(line, range.first + 1..range.last))
+                // ".5."
+                s[1].isDigit() -> listOf(y to range.first + 1..range.first + 1)
+
+                // "1.5"
+                s[0].isDigit() && s[2].isDigit() -> listOf(
+                    y to expandRangeLeft(line, range.first..range.first),
+                    y to expandRangeRight(line, range.last..range.last))
+                // "2.."
+                s[0].isDigit() -> listOf(y to expandRangeLeft(line, range.first..range.first))
+                // "..3"
+                s[2].isDigit() -> listOf(y to expandRangeRight(line, range.last..range.last))
+
+                // satisfying compiler with necessary branch
+                else -> listOf()
             }
         }
 
-        fun countAdjacentNumbers(y: Int, x: Int): Int {
-            var count = 0
+        fun buildTopOrBottomXRange(x: Int): IntRange {
+            val start = maxOf(0, x - 1)
+            val end = minOf(xRange.last, x + 1)
 
-            // left and right are somewhat trivial: add 1 when we have digit
+            return start..end
+        }
+
+        fun findAdjacentNumbers(y: Int, x: Int): NumberRanges {
+            val numbers = mutableListOf<Pair<Int, IntRange>>()
+
+            // left and right are somewhat trivial: expand to one side
             if (x - 1 in xRange && input[y][x - 1].isDigit()) {
-                count += 1
+                numbers.add(y to expandRangeLeft(input[y], x - 1..<x))
             }
             if (x + 1 in xRange && input[y][x + 1].isDigit()) {
-                count += 1
+                numbers.add(y to expandRangeRight(input[y], x + 1..x + 1))
             }
 
             // top and bottom has a few edge cases
             if (y - 1 in yRange) {
-                val topStart = maxOf(0, x - 1)
-                val topEnd = minOf(xRange.last, x + 1)
-
-                val top = input[y - 1].subSequence(topStart, topEnd + 1)
-                count += countAdjacentNumbersTopOrBottom(top)
+                numbers.addAll(findAdjacentNumbersTopOrBottom(y - 1, buildTopOrBottomXRange(x)))
             }
             if (y + 1 in yRange) {
-                val bottomStart = maxOf(0, x - 1)
-                val bottomEnd = minOf(xRange.last, x + 1)
-
-                val bottom = input[y + 1].subSequence(bottomStart, bottomEnd + 1)
-                count += countAdjacentNumbersTopOrBottom(bottom)
+                numbers.addAll(findAdjacentNumbersTopOrBottom(y + 1, buildTopOrBottomXRange(x)))
             }
 
-            return count
+            return numbers
         }
 
-        fun gearRatio(y: Int, x: Int): Int {
-            val nums = mutableListOf<Int>()
-
-            if (x - 1 in xRange) {
-                var i = x - 1
-                while (i > 0 && input[y][i].isDigit()) {
-                    i -= 1
-                }
-                nums.add(input[y].subSequence(i, x).toString().toInt())
-            }
-            if (x + 1 in xRange) {
-                var i = x + 1
-                while (i < xRange.last && input[y][i].isDigit()) {
-                    i += 1
-                }
-                nums.add(input[y].subSequence(x, i + 1).toString().toInt())
-            }
-
-            return nums.reduce{ acc, n -> acc * n }
+        fun gearRatio(adjacentNumbers: NumberRanges): Int {
+            return adjacentNumbers.map { (y, range) ->
+                input[y].substring(range).toInt()
+            }.reduce { acc, i -> acc * i }
         }
 
         var ratioSum = 0
         for ((y, line) in input.withIndex()) {
             for ((x, character) in line.withIndex()) {
                 if (character == '*') {
-                    val adjacentNumbersCount = countAdjacentNumbers(y, x)
-                    if (adjacentNumbersCount == 2) {
-                        println("gear found at ($y, $x). Need to sum up its neighbours")
-                        ratioSum += gearRatio(y, x)
-                    } else {
-                        println("($y, $x) is not a gear: has $adjacentNumbersCount neighbours")
+                    val adjacentNumbers = findAdjacentNumbers(y, x)
+                    if (adjacentNumbers.size == 2) {
+                        ratioSum += gearRatio(adjacentNumbers)
                     }
                 }
             }
