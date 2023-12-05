@@ -14,8 +14,6 @@ fun numberOfMatches(line: String): Int {
         .filter(String::isNotEmpty)
         .map(String::toInt)
 
-    winningNumbers to ourNumbers
-
     return ourNumbers.count { it in winningNumbers }
 }
 
