@@ -2,11 +2,27 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.io.path.readText
 
 /**
  * Reads lines from the given input txt file.
  */
 fun readInput(name: String) = Path("src/$name.txt").readLines()
+
+/**
+ * Reads entire file into string.
+ */
+fun readToString(name: String) = Path("src/$name.txt").readText()
+
+/**
+ * Converts given string to a list of Ints (assuming numbers separated by single space)
+ */
+fun toInts(s: String) = s.split(" ").map(String::toInt)
+
+/**
+ * Converts given string to a list of Longs (assuming numbers separated by single space)
+ */
+fun toLongs(s: String) = s.split(" ").map(String::toLong)
 
 /**
  * Converts string to md5 hash.
