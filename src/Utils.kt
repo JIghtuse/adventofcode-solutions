@@ -17,12 +17,12 @@ fun readToString(name: String) = Path("src/$name.txt").readText()
 /**
  * Converts given string to a list of Ints (assuming numbers separated by single space)
  */
-fun toInts(s: String) = s.split(" ").map(String::toInt)
+fun toInts(s: String) = s.split(" ").filter(String::isNotEmpty).map(String::toInt)
 
 /**
  * Converts given string to a list of Longs (assuming numbers separated by single space)
  */
-fun toLongs(s: String) = s.split(" ").map(String::toLong)
+fun toLongs(s: String) = s.split(" ").filter(String::isNotEmpty).map(String::toLong)
 
 /**
  * Converts string to md5 hash.
