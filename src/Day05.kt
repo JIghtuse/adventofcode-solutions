@@ -32,195 +32,101 @@ fun main() {
         return source.min()
     }
 
+    data class ConverterPoint(val start: Long, val diff: Long)
+
+    fun buildConverterPoints(parts: List<String>): List<ConverterPoint> {
+        val converterPoints = mutableListOf(ConverterPoint(0, 0))
+
+        fun processConverterLines(converterLines: List<String>) {
+            for (line in converterLines) {
+                val (dst, src, length) = line.split(" ").map(String::toLong)
+
+                val diff = dst - src
+                println("Discovered range ${src..<src + length} diff $diff")
+
+                val oldRangeStart = converterPoints.withIndex().last { it.value.start <= src }
+
+                var i = oldRangeStart.index
+
+                var leftOver = oldRangeStart.value.diff
+
+                if (src == oldRangeStart.value.start) {
+                    converterPoints[i] = ConverterPoint(src, oldRangeStart.value.diff + diff)
+                } else {
+                    converterPoints.add(i + 1, ConverterPoint(src, oldRangeStart.value.diff + diff))
+                    i += 1
+                }
+                i += 1
+                // println("begin processed;    i: $i; points: $converterPoints")
+
+                while (i in converterPoints.indices && converterPoints[i].start <= src + length - 1) {
+                    leftOver = converterPoints[i].diff
+                    converterPoints[i] = ConverterPoint(converterPoints[i].start, converterPoints[i].diff + diff)
+                    i += 1
+                }
+                // println("middle processed;   i: $i; points: $converterPoints")
+
+                if (converterPoints.size <= i) {
+                    converterPoints.add(i, ConverterPoint(src + length, oldRangeStart.value.start))
+                } else if (converterPoints[i].start != src + length) {
+                    converterPoints.add(i, ConverterPoint(src + length, leftOver))
+                }
+
+                //println("Incorporated range ${src..<src + length} diff $diff; points: $converterPoints")
+            }
+        }
+
+        for (converterPart in parts) {
+            val converterLines = converterPart.lines()
+
+            processConverterLines(converterLines.slice(1..converterLines.lastIndex))
+        }
+
+        return converterPoints
+    }
+
     fun part2(input: String): Long {
 
         val parts = input.split("\n\n")
 
         val seeds = toLongs(parts[0].substringAfter(": ")).windowed(2, 2)
-        //println("Seeds: $seeds")
 
         val seedRanges = seeds.map {(start, length) ->
-            start..start + length
+            start..<start + length
         }.sortedBy { it.first }
 
-        //println("seed ranges: $seedRanges")
+        // println("seed ranges: $seedRanges")
 
-        // TODO: lisce parts
-        // val converterLines = parts[1].lines()
+        val converterPoints = buildConverterPoints(parts.slice(1..parts.lastIndex))
 
-        // 0..Max 0
+        //println("converter points size: ${converterPoints.size}")
+        //println("converter points after converters loop: $converterPoints")
 
-        // 50 98 2   (50 - 98 = -48)
-        // 52 50 48  (52 - 50 = 2)
+        return seedRanges.minOf { seedRange ->
+            //println("working with range $seedRange")
+            var minLocation = Long.MAX_VALUE
 
-        // 0..49 0
-        // 50..97 +2
-        // 98..99 -48
-        // 100..Max 0
+            val firstValue = seedRange.first
+            //println("current value: $firstValue")
 
-        // 0 0
-        // 50 2
-        // 98 -48
-        // 100 0
-
-        // 0 0
-        // 15 -15
-        // 50 -13
-        // 52 2
-        // 98 -48
-        // 100 0
-
-        // 0 0
-        // 15 -15
-        // 50 -13
-        // 52 -13
-        // 54 2
-        // 98 -48
-        // 100 0
-
-        val converterPoints = mutableListOf(0L to 0L)
-
-        for (converterPart in parts.slice(1..parts.lastIndex)) {
-            val converterLines = converterPart.lines()
-            for (line in converterLines.slice(1..converterLines.lastIndex)) {
-                val (dst, src, length) = line.split(" ").map(String::toLong)
-
-                val diff = dst - src
-
-                val oldRangeStart = converterPoints.withIndex().last { it.value.first <= src }
-                //val oldRangeEnd = converterPoints.withIndex().last { it.value.first <= src + length - 1 }
-                //println("oldRangeStart: $oldRangeStart; oldRangeEnd: $oldRangeEnd")
-               // println("oldRangeStart: $oldRangeStart")
-
-                var i = oldRangeStart.index
-
-                var lastRewritten: Long? = null
-
-                if (src == oldRangeStart.value.first) {
-                    lastRewritten = oldRangeStart.value.second
-                    converterPoints[i] = src to oldRangeStart.value.second + diff
-                } else {
-                    // converterPoints.removeAt(i)
-                    converterPoints.add(i + 1, src to oldRangeStart.value.second + diff)
-                    i += 1
-                }
-                i += 1
-                //println("begin processed; i: $i; points: $converterPoints")
-
-
-                while (i in converterPoints.indices && converterPoints[i].first <= src + length - 1) {
-                    lastRewritten = converterPoints[i].second
-                    converterPoints[i] = converterPoints[i].first to converterPoints[i].second + diff
-                    i += 1
-                }
-               // println("middle processed; i: $i; points: $converterPoints")
-
-                if (converterPoints.size == i) {
-                    converterPoints.add(i, src + length to oldRangeStart.value.first)
-                } else if (converterPoints[i].first != src + length) {
-                    converterPoints.add(i, src + length to (lastRewritten ?: 99999999999L))
-                }
-
-                println("Incorporated range ${src..<src + length}: $converterPoints")
+            val firstPoint = converterPoints.withIndex().last { point ->
+                point.value.start <= firstValue
             }
-        }
-        println("converter points after converters loop: $converterPoints")
 
-        //val converterRanges = mutableListOf(0..Long.MAX_VALUE to 0L)
+            minLocation = minOf(minLocation, firstValue + firstPoint.value.diff)
+           //println("FOUND first point: $firstPoint; minLocation is $minLocation")
 
-        /*
-        fun addConverterRange(initialAddIndex: Int, range: Pair<LongRange, Long>) {
-            var addIndex = initialAddIndex
-            converterRanges.add(addIndex, range)
-            addIndex += 1
-        }
+            for (j in firstPoint.index + 1..converterPoints.lastIndex) {
+                if (converterPoints[j].start > seedRange.last) break
 
-         */
+                val currentValue = converterPoints[j].start
 
-        /*
-       // println("converter rules")
-        for (converterPart in parts.slice(1..2)) {
-            val converterLines = converterPart.lines()
-            for (line in converterLines.slice(1..converterLines.lastIndex)) {
-                val (dst, src, length) = line.split(" ").map(String::toLong)
-
-                val converterRangeWithSrcStart = converterRanges.withIndex().first {
-                    src in it.value.first
-                }
-
-                // considering only one case for now: entire new range fits into old one
-                // TODO: other cases
-                val newRange =
-                    converterRangeWithSrcStart.value.first.first..<src to converterRangeWithSrcStart.value.second
-
-
-                var addIndex = converterRangeWithSrcStart.index
-
-
-                val diff = dst - src
-                //println("${0..src} has 0 diff")
-                println("Found new range ${src..<src + length} has $diff diff")
-                converterRanges.removeAt(converterRangeWithSrcStart.index)
-
-                // new first part of previously-existed range
-                if (converterRangeWithSrcStart.value.first.first < src) {
-                    converterRanges.add(addIndex, newRange)
-                    addIndex += 1
-                }
-                //  if (src + length - 1 !in converterRangeWithSrcStart.value.first) {
-                if (src + length > src) {
-                    converterRanges.add(addIndex, src..<src + length to diff)
-                    addIndex += 1
-                }
-                //
-
-                if (src + length < converterRangeWithSrcStart.value.first.last) {
-                    converterRanges.add(
-                        addIndex,
-                        src + length..converterRangeWithSrcStart.value.first.last to converterRangeWithSrcStart.value.second
-                    )
-                }
-                addIndex += 1
-                println("now converter ranges: $converterRanges")
-                //println("${src + length..Long.MAX_VALUE} has 0 diff")
+                minLocation = minOf(minLocation, currentValue + converterPoints[j].diff)
+               //println("used value $currentValue; minLocation is $minLocation")
             }
+
+            minLocation
         }
-        // converterRanges = converterRanges.sortedBy { it.first.first }.toMutableList()
-        println("converter ranges after converters loop: $converterRanges")
-        println()
-
-
-         */
-        /*
-        for (line in parts[2].lines().slice(1..converterLines.lastIndex)) {
-            val (dst, src, length) = line.split(" ").map(String::toLong)
-
-            val diff = dst - src
-            //println("${0..src} has 0 diff")
-            // println("${src..<src + length} has $diff diff")
-            println("Found new range ${src..<src + length} has $diff diff (skipping it for now)")
-            //converterRanges.add(src..<src + length to diff)
-            //println("${src + length..Long.MAX_VALUE} has 0 diff")
-        }
-        println(converterRanges)
-         */
-        println()
-
-        /*
-        val converterRanges = converterLines
-            .slice(1..converterLines.lastIndex)
-            .map { it.split(" ").map(String::toLong) }
-            .map {
-                val (destinationStart, sourceStart, length) = it
-                destinationStart..destinationStart + length to sourceStart..sourceStart + length
-            }
-            .sortedBy { it.second.first }
-        */
-
-        //println("converter ranges $converterRanges")
-
-        // TODO: min of locations
-        return 42L
     }
 
     // test if implementation meets criteria from the description, like:
@@ -230,5 +136,6 @@ fun main() {
 
     val input = readToString("Day05")
     part1(input).println()
+    // -6855347786 is not the right answer
     part2(input).println()
 }
