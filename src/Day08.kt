@@ -1,6 +1,3 @@
-const val startingNodeName = "AAA"
-const val endingNodeName = "ZZZ"
-
 data class OutgoingNode(val left: String, val right: String)
 
 fun parseNetwork(nodeLines: List<String>) = buildMap {
@@ -43,7 +40,7 @@ fun main() {
         val lines = input.lines()
         val network = parseNetwork(lines.slice(2..lines.lastIndex))
 
-        return countSteps(instructions, network, startingNodeName) { it == endingNodeName }
+        return countSteps(instructions, network, "AAA") { it == "ZZZ" }
     }
 
     fun part2(input: String): Long {
@@ -57,9 +54,6 @@ fun main() {
         val cyclePeriod = nodes.map { initialNode ->
             countSteps(instructions, network, initialNode) { it.last() == 'Z' }
         }
-
-        // 1671551378 too low — probably overflowed
-        // 8245452805243
         return cyclePeriod.reduce { acc, i ->
             lcm(acc, i)
         }
