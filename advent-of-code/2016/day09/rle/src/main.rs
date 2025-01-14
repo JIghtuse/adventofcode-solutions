@@ -14,7 +14,9 @@ fn get_sequence_length_format_v1(marker_re: &Regex, line: &str) -> usize {
     let mut pos = 0;
     let mut len = 0;
     for capture in marker_re.captures_iter(line) {
-        let (cap_begin, cap_end) = capture.pos(0).unwrap();
+        let re_match = capture.get(0).unwrap();
+        let cap_begin = re_match.start();
+        let cap_end = re_match.end();
 
         if cap_begin < pos {
             continue;
@@ -36,15 +38,15 @@ fn get_sequence_length_format_v2(marker_re: &Regex, line: &str) -> usize {
         line.len()
     } else {
         let capture = marker_re.captures(line).unwrap();
-        let capture_pos = capture.pos(0).unwrap();
+        let capture_pos = capture.get(0).unwrap();
 
         let length: usize = capture[1].parse().unwrap();
         let times: usize = capture[2].parse().unwrap();
 
-        let slice_current = &line[capture_pos.1..capture_pos.1 + length];
-        let slice_end = &line[capture_pos.1 + length..line.len()];
+        let slice_current = &line[capture_pos.end()..capture_pos.end() + length];
+        let slice_end = &line[capture_pos.end() + length..line.len()];
 
-        capture_pos.0 + times * get_sequence_length_format_v2(marker_re, slice_current) +
+        capture_pos.start() + times * get_sequence_length_format_v2(marker_re, slice_current) +
         get_sequence_length_format_v2(marker_re, slice_end)
     }
 }
